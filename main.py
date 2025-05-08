@@ -1,7 +1,9 @@
 import openpyxl
 from openpyxl import Workbook
 from tkinter import filedialog
+from tkinter import messagebox
 import os
+import os.path
 
 #Create lists of the .txt files
 with open("jobtext.txt", "r") as jobtext_file:
@@ -66,7 +68,12 @@ def find_match(folder_path, files, headers, jobtexts):
 
     result_wb.remove(result_wb["Sheet"])
     result_wb.save(f"{folder_path}/Resultat.xlsx")
-    result_wb.close()    
+    result_wb.close()
+
+    if os.path.isfile(f"{folder_path}/Resultat.xlsx"):
+        messagebox.showinfo(message=f"Done!\nResult was place in {folder_path}/Resultat.xlsx")  
+    else:
+        messagebox.showerror(message="An error has occured!")
 
 
 if __name__ == "__main__":

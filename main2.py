@@ -36,30 +36,32 @@ def find_match(folder_path, files, headers, jobtexts):
         #Find job rows
         for i in range(5, data_worksheet.max_row):
             if data_worksheet.cell(row=i, column=1).value != None:
-                job_row.append([i, data_worksheet.cell(row=i, column=1).value, data_worksheet.cell(row=i, column=3).value])
+                job_row.append(i)
 
-
+        print(job_row)    
         #Find rows that contain header
         for job in job_row:
+            job_text = data_worksheet.cell(row=job, column=3).value.lower()
             for header in headers:
-                if header in job[2] and "tank" not in job[2] and "tanks" not in job[2]:
-                    match_list.append(job)
+                if header in job_text and "tank" not in job_text and "tanks" not in job_text:
+                    match_list.append(job_text)
                     break
-                elif "tank" in job[2] or "tanks" in job[2]:
-                    tank_match.append(job)
+                elif "tank" in job_text or "tanks" in job_text:
+                    tank_match.append(job_text)
                     break
-
+        
+        
         result = []
-        print(match)
+        #print(match)
         for match in match_list:
             print(match)
             for line in range(match[0], job_row[match[1]]+1):
                 print(line)
-                for text in jobtexts:
-                    if text in data_worksheet.cell(row=line, column=3).value.lower() and data_worksheet.cell(row=line, column=5).value != "":
-                        result.append([match[1], match[2], data_worksheet.cell(row=line, column=5).value])
+                #for text in jobtexts:
+                    #if text in data_worksheet.cell(row=line, column=3).value.lower() and data_worksheet.cell(row=line, column=5).value != "":
+                        #result.append([match[1], match[2], data_worksheet.cell(row=line, column=5).value])
         
-        print(result)
+        #print(result)
             
         """for x in range(5, data_worksheet.max_row):
             if data_worksheet.cell(row=x, column=1).value != None:
@@ -110,10 +112,10 @@ def find_match(folder_path, files, headers, jobtexts):
 
 
 if __name__ == "__main__":
-    try:
+    #try:
         folder_path = filedialog.askdirectory(title="Hvor ligger filerne?")
         files = list_of_files(folder_path)
         find_match(folder_path, files, headers, jobtexts)
-    except:
-       messagebox.showerror(message="An error has occured!")
+    #except:
+       #messagebox.showerror(message="An error has occured!")
     

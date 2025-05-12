@@ -27,26 +27,46 @@ def find_match(folder_path, files, headers, jobtexts):
     for file in files:
         job_row = []
         match_list = []
+        tank_match = []
+        found_types = []
+
         data_workbook = openpyxl.load_workbook(f"{folder_path}/{file}")
         data_worksheet = data_workbook.active
 
         #Find job rows
         for i in range(5, data_worksheet.max_row):
             if data_worksheet.cell(row=i, column=1).value != None:
-                job_row.append(i)
+                job_row.append([i, data_worksheet.cell(row=i, column=1).value, data_worksheet.cell(row=i, column=3).value])
+
 
         #Find rows that contain header
-        for x in range(5, data_worksheet.max_row):
+        for job in job_row:
+            for header in headers:
+                if header in job[2] and "tank" not in job[2] and "tanks" not in job[2]:
+                    match_list.append(job)
+                    break
+                elif "tank" in job[2] or "tanks" in job[2]:
+                    tank_match.append(job)
+                    break
 
+        result = []
+        print(match)
+        for match in match_list:
+            print(match)
+            for line in range(match[0], job_row[match[1]]+1):
+                print(line)
+                for text in jobtexts:
+                    if text in data_worksheet.cell(row=line, column=3).value.lower() and data_worksheet.cell(row=line, column=5).value != "":
+                        result.append([match[1], match[2], data_worksheet.cell(row=line, column=5).value])
+        
+        print(result)
+            
+        """for x in range(5, data_worksheet.max_row):
             if data_worksheet.cell(row=x, column=1).value != None:
-                job_num = data_worksheet.cell(row=x, column=1).value
-                job_txt = data_worksheet.cell(row=x, column=3).value
                 for header in headers:
                     if header in str(data_worksheet.cell(row=x, column=3).value).lower():
-                        if job_row.index(x)+1 < len(job_row) and [x, (job_row.index(x)+1)] not in match_list:                         
-                            match_list.append([x, (job_row.index(x)+1), job_num, job_txt])
-                        elif job_row.index(x)+1 > len(job_row) and [x, (job_row.index(x)+1)] not in match_list:
-                            match_list.append([x, len(job_row)], job_num, job_row)
+                        if str(data_worksheet.cell(row=x, column=3).value) not in found_types:
+                            found_types.append(str(data_worksheet.cell(row=x, column=3).value))                         
 
         #Search for job text in matches
         text_match = []
@@ -81,8 +101,8 @@ def find_match(folder_path, files, headers, jobtexts):
 
     result_wb.remove(result_wb["Sheet"])
     result_wb.save(f"{folder_path}/Resultat.xlsx")
-    result_wb.close()
-
+    result_wb.close()"""
+    #print(found_types)
     if os.path.isfile(f"{folder_path}/Resultat.xlsx"):
         messagebox.showinfo(message=f"Done!\nResult was place in {folder_path}/Resultat.xlsx")  
     else:

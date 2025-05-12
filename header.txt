@@ -1,7 +1,8 @@
 oil
 sewage
 freshwater
-fresh water
+fresh
+water
 fw
 sludge
 slop
@@ -16,3 +17,4 @@ shorepower
 suction
 cleaning
 tank
+tanks

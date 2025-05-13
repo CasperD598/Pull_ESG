@@ -14,6 +14,26 @@ with open("header.txt", "r") as header_file:
     headers = header_file.read()
     headers = headers.split("\n")
 
+with open("oily.txt", "r") as oily_file:
+    oily = oily_file.read()
+    oily = oily.split("\n")
+
+with open("sewage.txt", "r") as sewage_file:
+    sewage = sewage_file.read()
+    sewage = sewage.split("\n")
+
+with open("slop.txt", "r") as slop_file:
+    slop = slop_file.read()
+    slop = slop.split("\n")
+
+with open("fresh.txt", "r") as fresh_file:
+    fw = fresh_file.read()
+    fw = fw.split("\n")
+
+with open("power.txt", "r") as power_file:
+    power = power_file.read()
+    power = power.split("\n")
+
 #Create list of files in folder
 def list_of_files(folder_path):
     return os.listdir(folder_path)
@@ -37,74 +57,75 @@ def find_match(folder_path, files, headers, jobtexts):
         for i in range(5, data_worksheet.max_row):
             if data_worksheet.cell(row=i, column=1).value != None:
                 job_row.append(i)
-
-        print(job_row)    
+   
         #Find rows that contain header
         for job in job_row:
             job_text = data_worksheet.cell(row=job, column=3).value.lower()
             for header in headers:
                 if header in job_text and "tank" not in job_text and "tanks" not in job_text:
-                    match_list.append(job_text)
+                    match_list.append([job, job_text])
                     break
                 elif "tank" in job_text or "tanks" in job_text:
-                    tank_match.append(job_text)
+                    tank_match.append([job, job_text])
                     break
-        
-        
-        result = []
-        #print(match)
+    
+        results = []
         for match in match_list:
-            print(match)
-            for line in range(match[0], job_row[match[1]]+1):
-                print(line)
-                #for text in jobtexts:
-                    #if text in data_worksheet.cell(row=line, column=3).value.lower() and data_worksheet.cell(row=line, column=5).value != "":
-                        #result.append([match[1], match[2], data_worksheet.cell(row=line, column=5).value])
-        
-        #print(result)
-            
-        """for x in range(5, data_worksheet.max_row):
-            if data_worksheet.cell(row=x, column=1).value != None:
-                for header in headers:
-                    if header in str(data_worksheet.cell(row=x, column=3).value).lower():
-                        if str(data_worksheet.cell(row=x, column=3).value) not in found_types:
-                            found_types.append(str(data_worksheet.cell(row=x, column=3).value))                         
-
-        #Search for job text in matches
-        text_match = []
-        for match in match_list:
-            for line in range(match[0], job_row[match[1]]+1):
+            next_job_row = job_row[job_row.index(match[0]) + 1]
+            for line in range(match[0], next_job_row):
                 for text in jobtexts:
-                    if text in str(data_worksheet.cell(row=line, column=3).value).lower():
-                        text_match.append([line, str(data_worksheet.cell(row=line, column=3).value).lower(), str(data_worksheet.cell(row=line, column=5).value).lower(), match[2], match[3]])
-        
-        #Paste result
-        result_wb.create_sheet(file)
+                    if text in str(data_worksheet.cell(row=line, column=3).value).lower() and data_worksheet.cell(row=line, column=5).value != None and data_worksheet.cell(row=line, column=5).value != 0:
+                        results.append([line, data_worksheet.cell(row=match[0], column=1).value, data_worksheet.cell(row=line, column=3).value, data_worksheet.cell(row=line, column=5).value])
+                        break
+        for match in tank_match:
+            next_job_row = job_row[job_row.index(match[0]) + 1]
+            for line in range(match[0], next_job_row):
+                for text in jobtexts:
+                    if text in str(data_worksheet.cell(row=line, column=3).value).lower() and data_worksheet.cell(row=line, column=5).value != None and data_worksheet.cell(row=line, column=5).value != 0:
+                        results.append([line, data_worksheet.cell(row=match[0], column=1).value, data_worksheet.cell(row=line, column=3).value, data_worksheet.cell(row=line, column=5).value])
+                        break
+        sorted = {
+            "Oily waste":0,
+            "Fresh water":0,
+            "Shore power":0,
+            "Sewage/Grey water":0,
+            "Slop":0
+        }
+        for result in results:
+            for line in fw:
+                if line in result[2]:
+                    sorted["Fresh water"] = sorted["Fresh water"] + result[3]
+                    results.pop(results.index(result[2]))
+            for line in power:
+                if line in result[2]:
+                    sorted["Shore power"] = sorted["Shore power"] + result[3]
+                    results.pop(results.index(result[2]))
+            for line in sewage:
+                if line in result[2]:
+                    sorted["Sewage/Grey water"] = sorted["Sewage/Grey water"] + result[3]
+                    results.pop(results.index(result[2]))
+            for line in slop:
+                if line in result[2]:
+                    sorted["Slop"] = sorted["Slop"] + result[3]
+                    results.pop(results.index(result[2]))
+            for line in oily:
+                if line in result[2]:
+                    sorted["Oily waste"] = sorted["Oily waste"] + result[3]
+                    results.pop(results.index(result[2]))
+                elif line in "of max 2 m3 of oily pumpable waste":
+                    sorted["Oily waste"] = sorted["Oily waste"] + result[3]
+                    results.pop(results.index(result[2]))
+                elif line in "Possible additional disposal, each m3":
+                    sorted["Oily waste"] = sorted["Oily waste"] + result[3]
+                    results.pop(results.index(result[2]))
+
+
+        """result_wb.create_sheet(file)
         result_ws = result_wb[file]
-        result_ws.cell(row=1, column=1).value = "ROW"
         result_ws.cell(row=1, column=2).value = "TEXT"
-        result_ws.cell(row=1, column=3).value = "AMOUNT"
-        result_ws.cell(row=1, column=4).value = "JOB HEADER"
-        result_ws.cell(row=1, column=5).value = "JOB NUMBER"
+        result_ws.cell(row=1, column=3).value = "AMOUNT"""
 
-        x = 2
-        used_row = []
-        for match in text_match:
-            if match[0] not in used_row:
-                result_ws.cell(row=x, column=1).value = match[0]
-                result_ws.cell(row=x, column=2).value = match[1]
-                result_ws.cell(row=x, column=3).value = match[2]
-                if match[4] not in used_row:
-                    result_ws.cell(row=x, column=4).value = match[4]
-                    result_ws.cell(row=x, column=5).value = match[3]
-                used_row.append(match[0])
-                used_row.append(match[4])
-                x += 1
 
-    result_wb.remove(result_wb["Sheet"])
-    result_wb.save(f"{folder_path}/Resultat.xlsx")
-    result_wb.close()"""
-    #print(found_types)
     if os.path.isfile(f"{folder_path}/Resultat.xlsx"):
         messagebox.showinfo(message=f"Done!\nResult was place in {folder_path}/Resultat.xlsx")  
     else:

@@ -48,7 +48,6 @@ def find_match(folder_path, files, headers, jobtexts):
         job_row = []
         match_list = []
         tank_match = []
-        found_types = []
 
         data_workbook = openpyxl.load_workbook(f"{folder_path}/{file}")
         data_worksheet = data_workbook.active
@@ -60,7 +59,7 @@ def find_match(folder_path, files, headers, jobtexts):
    
         #Find rows that contain header
         for job in job_row:
-            job_text = data_worksheet.cell(row=job, column=3).value.lower()
+            job_text = data_worksheet.cell(row=job, column=3).value
             for header in headers:
                 if header in job_text and "tank" not in job_text and "tanks" not in job_text:
                     match_list.append([job, job_text])
@@ -91,43 +90,82 @@ def find_match(folder_path, files, headers, jobtexts):
             "Sewage/Grey water":0,
             "Slop":0
         }
+        used_result = []
+        oily_row = []
         for result in results:
             for line in fw:
-                if line in result[2]:
+                if line in str(result[2]).lower():
                     sorted["Fresh water"] = sorted["Fresh water"] + result[3]
-                    results.pop(results.index(result[2]))
+                    used_result.append(result)
+                    break
             for line in power:
-                if line in result[2]:
+                if line in str(result[2]).lower():
                     sorted["Shore power"] = sorted["Shore power"] + result[3]
-                    results.pop(results.index(result[2]))
+                    used_result.append(result)
+                    break
             for line in sewage:
-                if line in result[2]:
+                if line in str(result[2]).lower():
                     sorted["Sewage/Grey water"] = sorted["Sewage/Grey water"] + result[3]
-                    results.pop(results.index(result[2]))
+                    used_result.append(result)
+                    break
             for line in slop:
-                if line in result[2]:
+                if line in str(result[2]).lower():
                     sorted["Slop"] = sorted["Slop"] + result[3]
-                    results.pop(results.index(result[2]))
+                    used_result.append(result)
+                    break
             for line in oily:
-                if line in result[2]:
+                if line in str(result[2]).lower():      
                     sorted["Oily waste"] = sorted["Oily waste"] + result[3]
-                    results.pop(results.index(result[2]))
-                elif line in "of max 2 m3 of oily pumpable waste":
+                    used_result.append(result)
+                    oily_row.append(result[0])
+                    break
+                elif "m3 of oily pumpable waste" in str(result[2]).lower():
+                    sorted["Oily waste"] = sorted["Oily waste"] + 2
+                    used_result.append(result)
+                    oily_row.append(result[0])
+                    break
+                elif "possible additional disposal, each m3" in str(result[2]).lower():
                     sorted["Oily waste"] = sorted["Oily waste"] + result[3]
-                    results.pop(results.index(result[2]))
-                elif line in "Possible additional disposal, each m3":
-                    sorted["Oily waste"] = sorted["Oily waste"] + result[3]
-                    results.pop(results.index(result[2]))
+                    used_result.append(result)
+                    oily_row.append(result[0])
+                    break
+        print(sorted)
+        for result in used_result:
+            if result in results:
+                results.pop(results.index(result))
 
 
-        """result_wb.create_sheet(file)
+        result_wb.create_sheet(file)
         result_ws = result_wb[file]
-        result_ws.cell(row=1, column=2).value = "TEXT"
-        result_ws.cell(row=1, column=3).value = "AMOUNT"""
+        result_ws.cell(row=1, column=1).value = "TEXT"
+        result_ws.cell(row=1, column=2).value = "AMOUNT"
 
+        row = 2
+        for line in sorted:
+            result_ws.cell(row=row, column=1).value = line
+            result_ws.cell(row=row, column=2).value = sorted[line]
+            row += 1
+
+        result_ws.cell(row=row, column=1).value = "REST PLEASE CHECK:"
+        row += 1
+        result_ws.cell(row=row, column=1).value = "ROW"
+        result_ws.cell(row=row, column=2).value = "TEXT"
+        result_ws.cell(row=row, column=3).value = "AMOUNT"
+        row += 1
+        for line in results:
+            result_ws.cell(row=row, column=1).value = line[0]
+            result_ws.cell(row=row, column=2).value = line[2]
+            result_ws.cell(row=row, column=3).value = line[3]
+            row += 1
+    
+    result_wb.remove(result_wb["Sheet"])
+    result_wb.save(f"{folder_path}/Resultat.xlsx")
+    result_wb.close()
+
+    print(oily_row)
 
     if os.path.isfile(f"{folder_path}/Resultat.xlsx"):
-        messagebox.showinfo(message=f"Done!\nResult was place in {folder_path}/Resultat.xlsx")  
+        messagebox.showinfo(message=f"Done!\nResult was placed in {folder_path}/Resultat.xlsx")  
     else:
         messagebox.showerror(message="An error has occured!")
 

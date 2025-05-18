@@ -59,7 +59,7 @@ def find_match(folder_path, files, headers, jobtexts):
    
         #Find rows that contain header
         for job in job_row:
-            job_text = data_worksheet.cell(row=job, column=3).value
+            job_text = data_worksheet.cell(row=job, column=3).value.lower()
             for header in headers:
                 if header in job_text and "tank" not in job_text and "tanks" not in job_text:
                     match_list.append([job, job_text])
@@ -67,7 +67,7 @@ def find_match(folder_path, files, headers, jobtexts):
                 elif "tank" in job_text or "tanks" in job_text:
                     tank_match.append([job, job_text])
                     break
-    
+
         results = []
         for match in match_list:
             next_job_row = job_row[job_row.index(match[0]) + 1]
@@ -120,7 +120,7 @@ def find_match(folder_path, files, headers, jobtexts):
                     oily_row.append(result[0])
                     break
                 elif "m3 of oily pumpable waste" in str(result[2]).lower():
-                    sorted["Oily waste"] = sorted["Oily waste"] + 2
+                    sorted["Oily waste"] = sorted["Oily waste"] + (2*result[3])
                     used_result.append(result)
                     oily_row.append(result[0])
                     break
@@ -129,7 +129,7 @@ def find_match(folder_path, files, headers, jobtexts):
                     used_result.append(result)
                     oily_row.append(result[0])
                     break
-        print(sorted)
+            
         for result in used_result:
             if result in results:
                 results.pop(results.index(result))

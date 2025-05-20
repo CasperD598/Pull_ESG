@@ -40,7 +40,7 @@ def list_of_files(folder_path):
     
 #Create list of rows where headers match
 def find_match(folder_path, files, headers, jobtexts):
-    #Create file to paste result
+    #Create file to paste result   
     result_wb = Workbook()
 
     #For each file in folder
@@ -68,20 +68,21 @@ def find_match(folder_path, files, headers, jobtexts):
                     tank_match.append([job, job_text])
                     break
 
+        #Find matches that contain jobtexts
         results = []
         for match in match_list:
             next_job_row = job_row[job_row.index(match[0]) + 1]
             for line in range(match[0], next_job_row):
                 for text in jobtexts:
-                    if text in str(data_worksheet.cell(row=line, column=3).value).lower() and data_worksheet.cell(row=line, column=5).value != None and data_worksheet.cell(row=line, column=5).value != 0:
-                        results.append([line, data_worksheet.cell(row=match[0], column=1).value, data_worksheet.cell(row=line, column=3).value, data_worksheet.cell(row=line, column=5).value])
+                    if text in str(data_worksheet.cell(row=line, column=3).value).lower() and data_worksheet.cell(row=line, column=5).value != None and data_worksheet.cell(row=line, column=5).value != 0 and data_worksheet.cell(row=line, column=6).value < 10000:
+                        results.append([line, data_worksheet.cell(row=match[0], column=1).value, data_worksheet.cell(row=line, column=3).value, data_worksheet.cell(row=line, column=5).value, match[1]])
                         break
         for match in tank_match:
             next_job_row = job_row[job_row.index(match[0]) + 1]
             for line in range(match[0], next_job_row):
                 for text in jobtexts:
-                    if text in str(data_worksheet.cell(row=line, column=3).value).lower() and data_worksheet.cell(row=line, column=5).value != None and data_worksheet.cell(row=line, column=5).value != 0:
-                        results.append([line, data_worksheet.cell(row=match[0], column=1).value, data_worksheet.cell(row=line, column=3).value, data_worksheet.cell(row=line, column=5).value])
+                    if text in str(data_worksheet.cell(row=line, column=3).value).lower() and data_worksheet.cell(row=line, column=5).value != None and data_worksheet.cell(row=line, column=5).value != 0 and data_worksheet.cell(row=line, column=6).value < 10000:
+                        results.append([line, data_worksheet.cell(row=match[0], column=1).value, data_worksheet.cell(row=line, column=3).value, data_worksheet.cell(row=line, column=5).value, match[1]])
                         break
         sorted = {
             "Oily waste":0,
@@ -90,11 +91,16 @@ def find_match(folder_path, files, headers, jobtexts):
             "Sewage/Grey water":0,
             "Slop":0
         }
-        used_result = []
+        #Sort the results
+        """used_result = []
         oily_row = []
         for result in results:
             for line in fw:
                 if line in str(result[2]).lower():
+                    sorted["Fresh water"] = sorted["Fresh water"] + result[3]
+                    used_result.append(result)
+                    break
+                elif line in str(result[4]).lower() and "ton" not in str(result[2]).lower():
                     sorted["Fresh water"] = sorted["Fresh water"] + result[3]
                     used_result.append(result)
                     break
@@ -103,8 +109,16 @@ def find_match(folder_path, files, headers, jobtexts):
                     sorted["Shore power"] = sorted["Shore power"] + result[3]
                     used_result.append(result)
                     break
+                elif line in str(result[4]).lower() and "ton" not in str(result[2]).lower():
+                    sorted["Shore power"] = sorted["Shore power"] + result[3]
+                    used_result.append(result)
+                    break
             for line in sewage:
                 if line in str(result[2]).lower():
+                    sorted["Sewage/Grey water"] = sorted["Sewage/Grey water"] + result[3]
+                    used_result.append(result)
+                    break
+                elif line in str(result[4]).lower() and "ton" not in str(result[2]).lower():
                     sorted["Sewage/Grey water"] = sorted["Sewage/Grey water"] + result[3]
                     used_result.append(result)
                     break
@@ -113,28 +127,42 @@ def find_match(folder_path, files, headers, jobtexts):
                     sorted["Slop"] = sorted["Slop"] + result[3]
                     used_result.append(result)
                     break
+                elif line in str(result[4]).lower() and "ton" not in str(result[2]).lower():
+                    sorted["Slop"] = sorted["Slop"] + result[3]
+                    used_result.append(result)
+                    break
             for line in oily:
                 if line in str(result[2]).lower():      
                     sorted["Oily waste"] = sorted["Oily waste"] + result[3]
                     used_result.append(result)
                     oily_row.append(result[0])
+                    print(f"{line}  {result[2]} 1")
                     break
                 elif "m3 of oily pumpable waste" in str(result[2]).lower():
                     sorted["Oily waste"] = sorted["Oily waste"] + (2*result[3])
                     used_result.append(result)
                     oily_row.append(result[0])
+                    print(f"{line}  {result[2]} 2")
                     break
                 elif "possible additional disposal, each m3" in str(result[2]).lower():
                     sorted["Oily waste"] = sorted["Oily waste"] + result[3]
                     used_result.append(result)
                     oily_row.append(result[0])
+                    print(f"{line}  {result[2]} 3")
                     break
-            
+                elif line in str(result[4]).lower() and "ton" not in str(result[2]).lower():
+                    sorted["Oily waste"] = sorted["Oily waste"] + result[3]
+                    used_result.append(result)
+                    oily_row.append(result[0])
+                    print(f"{line}  {result[2]} 4")
+                    break
+        print(oily_row)
+        #Remove used results from list    
         for result in used_result:
             if result in results:
-                results.pop(results.index(result))
+                results.pop(results.index(result))"""
 
-
+        #Paste result in excel
         result_wb.create_sheet(file)
         result_ws = result_wb[file]
         result_ws.cell(row=1, column=1).value = "TEXT"
@@ -146,6 +174,8 @@ def find_match(folder_path, files, headers, jobtexts):
             result_ws.cell(row=row, column=2).value = sorted[line]
             row += 1
 
+        #Paste unused matches for manual check
+        row += 1
         result_ws.cell(row=row, column=1).value = "REST PLEASE CHECK:"
         row += 1
         result_ws.cell(row=row, column=1).value = "ROW"
@@ -162,8 +192,6 @@ def find_match(folder_path, files, headers, jobtexts):
     result_wb.save(f"{folder_path}/Resultat.xlsx")
     result_wb.close()
 
-    print(oily_row)
-
     if os.path.isfile(f"{folder_path}/Resultat.xlsx"):
         messagebox.showinfo(message=f"Done!\nResult was placed in {folder_path}/Resultat.xlsx")  
     else:
@@ -174,6 +202,8 @@ if __name__ == "__main__":
     #try:
         folder_path = filedialog.askdirectory(title="Hvor ligger filerne?")
         files = list_of_files(folder_path)
+        if "Resultat.xlsx" in files:
+            files.pop(files.index("Resultat.xlsx"))
         find_match(folder_path, files, headers, jobtexts)
     #except:
        #messagebox.showerror(message="An error has occured!")

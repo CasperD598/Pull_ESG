@@ -6,5 +6,9 @@ fresh water
 freshwater
 fw
 m3
-suction
 m³
+shore power
+shorepower
+electrical
+electric
+power
